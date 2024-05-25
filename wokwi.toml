@@ -1,0 +1,4 @@
+[wokwi]
+version=1
+firmware='build/AccumulatorTester.ino.hex'
+elf='build/AccumulatorTester.ino.elf'
