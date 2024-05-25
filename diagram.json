@@ -1,0 +1,11 @@
+{
+    "version": 1,
+    "author": "Anonymous maker",
+    "editor": "wokwi",
+    "parts": [
+        { "type": "wokwi-arduino-uno", "id": "uno", "top": 0, "left": 0, "attrs": { } },
+        { "type": "chip-st7735", "id": "display", "top": -85.38, "left": -206.4, "attrs": { } }
+    ],
+    "connections": [ ],
+    "dependencies": { "chip-st7735": "github:martysweet/st7735-wokwi-chip@1.0.1" }
+}
