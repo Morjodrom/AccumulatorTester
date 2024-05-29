@@ -19,26 +19,6 @@ void setup()
     tft.initR(INITR_BLACKTAB);   
     tft.fillScreen(ST77XX_BLACK);
     tft.setRotation(2);
-/*
-    drawNoise(); 
-    tft.drawLine(0, 0, 128, 160, ST77XX_GREEN);
-    tft.drawFastHLine(100, 100, -50, ST77XX_MAGENTA);
-    tft.drawFastVLine(100, 100, -50, ST7735_MAGENTA);
-    tft.fillRect(50, 50, 20, 20, 0x0137);
-    tft.drawRect(60, 60, 8, 8, ST7735_BLACK);
-
-    int charHeight = 8;
-    tft.drawChar(50, 50, 0x03, 0x9051, 0xcccc, 1);
-    tft.drawChar(50, 50 + charHeight, 0x04, 0x9051, 0xcccc, 2);
-    tft.drawChar(50, 50 + charHeight * 3, 0x05, 0x9051, 0xcccc, 3);
-
-    delay(1000);
-    tft.fillScreen(ST7735_BLACK);
-    tft.setCursor(0, 0);
-    tft.setTextSize(1);
-    tft.setTextColor(ST77XX_RED, ST7735_BLACK);
-*/
-
 
     tft.setTextSize(1);
 }
@@ -72,14 +52,3 @@ void loop()
     delay(250);
 }
 
-void drawNoise(){
-    int pixelsMax = 1000;
-    int offset = 10;
-    for(int i = 0; i < pixelsMax; i++){
-        tft.drawPixel(
-            random(offset, pixelsMax / 10 + offset), 
-            random(offset, pixelsMax / 10 + offset), 
-            0x632C
-        );
-    }
-}
