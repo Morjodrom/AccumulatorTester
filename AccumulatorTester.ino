@@ -19,7 +19,6 @@ void setup()
     tft.initR(INITR_BLACKTAB);   
     tft.fillScreen(ST77XX_BLACK);
     tft.setRotation(2);
-
     tft.setTextSize(1);
 }
 
@@ -28,27 +27,27 @@ unsigned int currentMilliAmp = 800;
 char buffer[10];
 void loop()
 {
-    tft.setCursor(0, 0);
-
     voltsNow += 0.5;
     currentMilliAmp += 100;
 
     sprintf(buffer, "%-6s", (String(voltsNow, 2) + 'V').c_str());
     tft.setTextColor(ST77XX_RED, ST7735_CYAN);
+    tft.setCursor(0, 0);
     tft.print(buffer);
    
 
     sprintf(buffer, "%4dmA", currentMilliAmp);
-    int16_t boundsX, boundsY;
-    uint16_t boundsW, boundsH;
-    tft.getTextBounds(buffer, 0, 0, &boundsX, &boundsY, &boundsW, &boundsH);
-    int upperRightSignX = tft.width() - boundsW;
-    int upperRightSignY = 0;
-    tft.setCursor(upperRightSignX, upperRightSignY);
-
     tft.setTextColor(ST77XX_RED, ST7735_BLUE);
+    tft.setCursor(getRightAlignedX(buffer), 0);
     tft.print(buffer);
 
     delay(250);
+}
+
+uint16_t getRightAlignedX(char * string){
+    int16_t boundsX, boundsY;
+    uint16_t boundsW, boundsH;
+    tft.getTextBounds(buffer, 0, 0, &boundsX, &boundsY, &boundsW, &boundsH);
+    return tft.width() - boundsW;
 }
 
