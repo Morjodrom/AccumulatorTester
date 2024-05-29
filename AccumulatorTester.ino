@@ -1,5 +1,6 @@
 #include <Adafruit_ST7735.h>
 #include <Adafruit_GFX.h>
+#include <ArduinoTrace.h>
 
 #define TFT_CS 10
 #define TFT_RST 9 // Or set to -1 and connect to Arduino RESET pin
@@ -11,12 +12,14 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
 void setup()
 {
+    Serial.begin(9600);
+
     // standard charset is CP437, fix for the old library bug
     tft.cp437(true);
     tft.initR(INITR_BLACKTAB);   
     tft.fillScreen(ST77XX_BLACK);
     tft.setRotation(2);
-
+/*
     drawNoise(); 
     tft.drawLine(0, 0, 128, 160, ST77XX_GREEN);
     tft.drawFastHLine(100, 100, -50, ST77XX_MAGENTA);
@@ -34,26 +37,36 @@ void setup()
     tft.setCursor(0, 0);
     tft.setTextSize(1);
     tft.setTextColor(ST77XX_RED, ST7735_BLACK);
+*/
 
 
-
-   
+    tft.setTextSize(1);
 }
 
-float voltageNow = 0;
-float currentNow = 0;
-char buffer[7];
+float voltsNow = 0;
+unsigned int currentMilliAmp = 800;
+char buffer[10];
 void loop()
 {
     tft.setCursor(0, 0);
 
-    voltageNow += 0.5;
-    currentNow += 0.5;
+    voltsNow += 0.5;
+    currentMilliAmp += 100;
 
-    sprintf(buffer, "%-6s", (String(voltageNow) + "V").c_str());
+    sprintf(buffer, "%-6s", (String(voltsNow, 2) + 'V').c_str());
+    tft.setTextColor(ST77XX_RED, ST7735_CYAN);
     tft.print(buffer);
+   
 
-    sprintf(buffer, "%6s", (String(currentNow) +  "A").c_str());
+    sprintf(buffer, "%4dmA", currentMilliAmp);
+    int16_t boundsX, boundsY;
+    uint16_t boundsW, boundsH;
+    tft.getTextBounds(buffer, 0, 0, &boundsX, &boundsY, &boundsW, &boundsH);
+    int upperRightSignX = tft.width() - boundsW;
+    int upperRightSignY = 0;
+    tft.setCursor(upperRightSignX, upperRightSignY);
+
+    tft.setTextColor(ST77XX_RED, ST7735_BLUE);
     tft.print(buffer);
 
     delay(250);

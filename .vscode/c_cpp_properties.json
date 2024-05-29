@@ -23,6 +23,7 @@
                 "C:\\Users\\Dmitry\\Documents\\Arduino\\libraries\\Adafruit_BusIO",
                 "C:\\Users\\Dmitry\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\libraries\\Wire\\src",
                 "C:\\Users\\Dmitry\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\libraries\\SPI\\src",
+                "C:\\Users\\Dmitry\\Documents\\Arduino\\libraries\\ArduinoTrace",
                 "c:\\users\\dmitry\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\lib\\gcc\\avr\\7.3.0\\include",
                 "c:\\users\\dmitry\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\lib\\gcc\\avr\\7.3.0\\include-fixed",
                 "c:\\users\\dmitry\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\avr\\include"
