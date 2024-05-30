@@ -10,6 +10,7 @@
 #define TEXT_SIZE 2
 #define LINE_MARGIN_PX 4
 #define SENSORS_POLLING_PERIOD_MS 1000
+#define DISPLAY_FRAME_LENGTH 100
 
 enum Alignment {
     Left, Right, Center
@@ -42,7 +43,8 @@ unsigned int secondsSpent = 0;
 unsigned int resistanceMilliOhm = 150;
 
 unsigned long lastMillis = 0;
-int displayTimeout = 0;
+int sensorsPollingTimeout = 0;
+int displayUpdateTimeout = 0;
 short editMode = 0;
 
 char buffer[10];
@@ -67,14 +69,18 @@ void loop()
         DUMP(editMode);
     }
 
-    displayTimeout -= millisUpdate;
-    if(displayTimeout <= 0){
-        displayTimeout = SENSORS_POLLING_PERIOD_MS;
+    sensorsPollingTimeout -= millisUpdate;
+    if(sensorsPollingTimeout <= 0){
+        sensorsPollingTimeout = SENSORS_POLLING_PERIOD_MS;
 
         voltsNow += 0.5;
         currentMilliAmp += 100;
         secondsSpent = floor(millis() / 1000);
+    }
 
+    displayUpdateTimeout -= millisUpdate;
+    if(displayUpdateTimeout <= 0){
+        displayUpdateTimeout = DISPLAY_FRAME_LENGTH;
         updateDisplay();
     }
 }
@@ -107,7 +113,7 @@ void updateDisplay()
     tft.println();
     tft.setCursor(0, tft.getCursorY() + LINE_MARGIN_PX);
 
-    sprintf(buffer, "%4dmO", resistanceMilliOhm);
+    sprintf(buffer, "%4dm ", resistanceMilliOhm);
     tft.setTextColor(0x07FE, ST7735_BLACK);
     tft.setCursor(0, tft.getCursorY());
     tft.print(buffer);
