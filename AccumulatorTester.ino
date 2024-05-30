@@ -10,7 +10,7 @@
 #define TEXT_SIZE 2
 #define LINE_MARGIN_PX 4
 #define SENSORS_POLLING_PERIOD_MS 1000
-#define DISPLAY_FRAME_LENGTH 100
+#define DISPLAY_FRAME_LENGTH 1000
 
 enum Alignment {
     Left, Right, Center
@@ -45,6 +45,7 @@ unsigned int resistanceMilliOhm = 150;
 unsigned long lastMillis = 0;
 int sensorsPollingTimeout = 0;
 int displayUpdateTimeout = 0;
+short menuSelected = 0;
 short editMode = 0;
 
 char buffer[10];
@@ -54,19 +55,24 @@ void loop()
     lastMillis = millis();
 
     if(encoder.tick()){        
-        if(editMode == 0 && encoder.click()){
-            editMode = 1;
-        }
-
-        if(editMode > 0 && encoder.turn()){
-            editMode += encoder.dir();
-
-            if(editMode > 1){
-                editMode = 0;
+        if(encoder.click()){
+            if(menuSelected == 0){                
+                menuSelected = 1;
+            } else {
+                editMode = menuSelected;
+                menuSelected = 0;
             }
         }
 
-        DUMP(editMode);
+        if(menuSelected > 0 && encoder.turn()){
+            menuSelected += encoder.dir();
+        }
+
+        if(editMode == 1){
+            targetMinVolts += 0.1 * encoder.dir();
+        }
+
+        DUMP(menuSelected);
     }
 
     sensorsPollingTimeout -= millisUpdate;
@@ -87,24 +93,35 @@ void loop()
 
 void updateDisplay()
 {
+    // voltage sensor
     sprintf(buffer, "%-6s", (String(voltsNow, 2) + 'v').c_str());
     tft.setTextColor(0x07FE, ST7735_BLACK);
     tft.setCursor(0, 0);
     tft.print(buffer);
 
+    // target volts
     sprintf(buffer, ">%5s", (String(targetMinVolts, 1) + 'v').c_str());
-    tft.setTextColor(0x07FE, ST7735_BLACK);
+    if(menuSelected == 1){
+        tft.setTextColor(ST7735_BLACK, ST7735_WHITE);       
+    } else if(editMode == 1){
+        tft.setTextColor(ST7735_CYAN, ST7735_RED); 
+    }
+    else {
+        tft.setTextColor(0x07FE, ST7735_BLACK);
+    }
     tft.setCursor(getAlignedX(buffer, Alignment::Right), 0);
     tft.print(buffer);
 
     tft.println();
     tft.setCursor(0, tft.getCursorY() + LINE_MARGIN_PX);
 
+    // current sensor
     sprintf(buffer, "%4dmA", currentMilliAmp);
     tft.setTextColor(0x07FE, ST7735_BLACK);
     tft.setCursor(0, tft.getCursorY());
     tft.print(buffer);
 
+    // mAh calculation
     sprintf(buffer, "%dmAh", milliAmpsHour);
     tft.setTextColor(0x07FE, ST7735_BLACK);
     tft.setCursor(getAlignedX(buffer, Alignment::Right), tft.getCursorY());
@@ -113,6 +130,7 @@ void updateDisplay()
     tft.println();
     tft.setCursor(0, tft.getCursorY() + LINE_MARGIN_PX);
 
+    // resistance sensor
     sprintf(buffer, "%4dm ", resistanceMilliOhm);
     tft.setTextColor(0x07FE, ST7735_BLACK);
     tft.setCursor(0, tft.getCursorY());
@@ -120,6 +138,7 @@ void updateDisplay()
     tft.setCursor(tft.getCursorX() - getCharWidth(), tft.getCursorY());
     tft.write(0xEA);
 
+    // timer
     uint16_t minutes = floor(secondsSpent / 60);
     uint16_t seconds = secondsSpent % 60;
     sprintf(buffer, "%2d:%02d", minutes, seconds);
