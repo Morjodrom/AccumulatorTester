@@ -8,6 +8,7 @@
 #define TFT_DC 8
 #define TEXT_SIZE 2
 #define LINE_MARGIN_PX 4
+#define SENSORS_POLLING_PERIOD_MS 1000
 
 enum Alignment {
     Left, Right, Center
@@ -38,7 +39,7 @@ unsigned int secondsSpent = 0;
 unsigned int resistanceMilliOhm = 150;
 
 unsigned long lastMillis = 0;
-int displayTimeout = 1000;
+int displayTimeout = 0;
 
 char buffer[10];
 void loop()
@@ -47,9 +48,8 @@ void loop()
     lastMillis = millis();
 
     displayTimeout -= millisUpdate;
-
-    if(displayTimeout < 0){
-        displayTimeout = 1000;
+    if(displayTimeout <= 0){
+        displayTimeout = SENSORS_POLLING_PERIOD_MS;
 
         voltsNow += 0.5;
         currentMilliAmp += 100;
