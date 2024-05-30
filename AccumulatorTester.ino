@@ -2,6 +2,7 @@
 #include <Adafruit_GFX.h>
 #include <ArduinoTrace.h>
 #include "Arduino.h"
+#include <EncButton.h>
 
 #define TFT_CS 10
 #define TFT_RST 9 // Or set to -1 and connect to Arduino RESET pin
@@ -16,12 +17,14 @@ enum Alignment {
 uint16_t getAlignedX(char * buffer, Alignment alignment);
 
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
-unsigned int const charWidthRatio = 8;
-unsigned int const charHeightRatio = 16;
+EncButton encoder = EncButton(7, 6, 5);
 
 void setup()
 {
+    encoder.setEncType(EB_STEP4_LOW);
     Serial.begin(9600);
+
+    DUMP(__TIME__);
 
     // standard charset is CP437, fix for the old library bug
     tft.cp437(true);
@@ -40,12 +43,29 @@ unsigned int resistanceMilliOhm = 150;
 
 unsigned long lastMillis = 0;
 int displayTimeout = 0;
+short editMode = 0;
 
 char buffer[10];
 void loop()
 {
     unsigned long millisUpdate = millis() - lastMillis;
     lastMillis = millis();
+
+    if(encoder.tick()){        
+        if(editMode == 0 && encoder.click()){
+            editMode = 1;
+        }
+
+        if(editMode > 0 && encoder.turn()){
+            editMode += encoder.dir();
+
+            if(editMode > 1){
+                editMode = 0;
+            }
+        }
+
+        DUMP(editMode);
+    }
 
     displayTimeout -= millisUpdate;
     if(displayTimeout <= 0){
