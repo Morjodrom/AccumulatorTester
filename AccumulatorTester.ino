@@ -34,6 +34,7 @@ float targetMinVolts = 3.3;
 unsigned int currentMilliAmp = 0;
 unsigned int milliAmpsHour = 0;
 unsigned int secondsSpent = 0;
+unsigned int resistanceMilliOhm = 150;
 
 char buffer[10];
 void loop()
@@ -68,6 +69,13 @@ void loop()
 
     tft.println();
     tft.setCursor(0, tft.getCursorY() + LINE_MARGIN_PX);
+
+    sprintf(buffer, "%4dmO", resistanceMilliOhm);
+    tft.setTextColor(0x07FE, ST7735_BLACK);
+    tft.setCursor(0, tft.getCursorY());
+    tft.print(buffer);
+    tft.setCursor(tft.getCursorX() - getCharWidth(), tft.getCursorY());
+    tft.write(0xEA);
    
     uint16_t minutes = floor(secondsSpent / 60);
     uint16_t seconds = secondsSpent % 60;
@@ -77,6 +85,15 @@ void loop()
     tft.println(buffer);
 
     delay(250);
+}
+
+uint16_t getCharWidth(){
+    int16_t x = 0, y = 0;
+    uint16_t w, h;
+
+    tft.getTextBounds("a", 0, 0, &x, &y, &w, &h);
+
+    return w;
 }
 
 uint16_t getAlignedX(char * string, Alignment alignment = Alignment::Left){
