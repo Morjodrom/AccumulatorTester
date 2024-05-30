@@ -1,6 +1,7 @@
 #include <Adafruit_ST7735.h>
 #include <Adafruit_GFX.h>
 #include <ArduinoTrace.h>
+#include "Arduino.h"
 
 #define TFT_CS 10
 #define TFT_RST 9 // Or set to -1 and connect to Arduino RESET pin
@@ -49,53 +50,57 @@ void loop()
 
     if(displayTimeout < 0){
         displayTimeout = 1000;
+
         voltsNow += 0.5;
         currentMilliAmp += 100;
         secondsSpent = floor(millis() / 1000);
 
-        sprintf(buffer, "%-6s", (String(voltsNow, 2) + 'v').c_str());
-        tft.setTextColor(0x07FE, ST7735_BLACK);
-        tft.setCursor(0, 0);
-        tft.print(buffer);
-
-        sprintf(buffer, ">%5s", (String(targetMinVolts, 1) + 'v').c_str());
-        tft.setTextColor(0x07FE, ST7735_BLACK);
-        tft.setCursor(getAlignedX(buffer, Alignment::Right), 0);
-        tft.print(buffer);
-
-        tft.println();
-        tft.setCursor(0, tft.getCursorY() + LINE_MARGIN_PX);
-    
-
-        sprintf(buffer, "%4dmA", currentMilliAmp);
-        tft.setTextColor(0x07FE, ST7735_BLACK);
-        tft.setCursor(0, tft.getCursorY());
-        tft.print(buffer);
-
-        sprintf(buffer, "%dmAh", milliAmpsHour);
-        tft.setTextColor(0x07FE, ST7735_BLACK);
-        tft.setCursor(getAlignedX(buffer, Alignment::Right), tft.getCursorY());
-        tft.print(buffer);
-
-        tft.println();
-        tft.setCursor(0, tft.getCursorY() + LINE_MARGIN_PX);
-
-        sprintf(buffer, "%4dmO", resistanceMilliOhm);
-        tft.setTextColor(0x07FE, ST7735_BLACK);
-        tft.setCursor(0, tft.getCursorY());
-        tft.print(buffer);
-        tft.setCursor(tft.getCursorX() - getCharWidth(), tft.getCursorY());
-        tft.write(0xEA);
-    
-        uint16_t minutes = floor(secondsSpent / 60);
-        uint16_t seconds = secondsSpent % 60;
-        sprintf(buffer, "%2d:%02d", minutes, seconds);
-        tft.setTextColor(0x07FE, ST7735_BLACK);
-        tft.setCursor(getAlignedX(buffer, Alignment::Right), tft.getCursorY() + LINE_MARGIN_PX);
-        tft.println(buffer);
+        updateDisplay();
     }
 }
 
+void updateDisplay()
+{
+    sprintf(buffer, "%-6s", (String(voltsNow, 2) + 'v').c_str());
+    tft.setTextColor(0x07FE, ST7735_BLACK);
+    tft.setCursor(0, 0);
+    tft.print(buffer);
+
+    sprintf(buffer, ">%5s", (String(targetMinVolts, 1) + 'v').c_str());
+    tft.setTextColor(0x07FE, ST7735_BLACK);
+    tft.setCursor(getAlignedX(buffer, Alignment::Right), 0);
+    tft.print(buffer);
+
+    tft.println();
+    tft.setCursor(0, tft.getCursorY() + LINE_MARGIN_PX);
+
+    sprintf(buffer, "%4dmA", currentMilliAmp);
+    tft.setTextColor(0x07FE, ST7735_BLACK);
+    tft.setCursor(0, tft.getCursorY());
+    tft.print(buffer);
+
+    sprintf(buffer, "%dmAh", milliAmpsHour);
+    tft.setTextColor(0x07FE, ST7735_BLACK);
+    tft.setCursor(getAlignedX(buffer, Alignment::Right), tft.getCursorY());
+    tft.print(buffer);
+
+    tft.println();
+    tft.setCursor(0, tft.getCursorY() + LINE_MARGIN_PX);
+
+    sprintf(buffer, "%4dmO", resistanceMilliOhm);
+    tft.setTextColor(0x07FE, ST7735_BLACK);
+    tft.setCursor(0, tft.getCursorY());
+    tft.print(buffer);
+    tft.setCursor(tft.getCursorX() - getCharWidth(), tft.getCursorY());
+    tft.write(0xEA);
+
+    uint16_t minutes = floor(secondsSpent / 60);
+    uint16_t seconds = secondsSpent % 60;
+    sprintf(buffer, "%2d:%02d", minutes, seconds);
+    tft.setTextColor(0x07FE, ST7735_BLACK);
+    tft.setCursor(getAlignedX(buffer, Alignment::Right), tft.getCursorY() + LINE_MARGIN_PX);
+    tft.println(buffer);
+}
 uint16_t getCharWidth(){
     int16_t x = 0, y = 0;
     uint16_t w, h;
