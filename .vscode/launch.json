@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Wokwi GDB",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/AccumulatorTester.ino.elf",
+        "cwd": "${workspaceFolder}",
+        "MIMode": "gdb",
+        "miDebuggerPath": "X:/Program Files (x86)/Arduino/hardware/tools/avr/bin/avr-gdb.exe",
+        "miDebuggerServerAddress": "localhost:3333"
+      }
+    ]
+  }

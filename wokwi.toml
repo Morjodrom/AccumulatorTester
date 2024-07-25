@@ -1,4 +1,5 @@
 [wokwi]
 version=1
+gdbServerPort=3333
 firmware='build/AccumulatorTester.ino.hex'
 elf='build/AccumulatorTester.ino.elf'
