@@ -48,6 +48,12 @@ int displayUpdateTimeout = 0;
 short menuSelected = 0;
 short editMode = 0;
 
+enum Menu {
+    Cancel = 0,
+    MinVoltage = 1,
+    Load = 2
+};
+
 void loop()
 {
     unsigned long millisUpdate = millis() - lastMillis;
@@ -55,20 +61,23 @@ void loop()
 
     if(encoder.tick()){        
         if(encoder.click()){
-            if(menuSelected == 0){                
-                menuSelected = 1;
+            if(menuSelected == Menu::Cancel){                
+                menuSelected = Menu::MinVoltage;
             } else {
                 editMode = menuSelected;
-                menuSelected = 0;
+                menuSelected = Menu::Cancel;
             }
         }
 
-        if(menuSelected > 0 && encoder.turn()){
+        if(menuSelected > Menu::Cancel && encoder.turn()){
             menuSelected += encoder.dir();
         }
 
-        if(editMode == 1){
+        if(editMode == Menu::MinVoltage){
             targetMinVolts += 0.1 * encoder.dir();
+        }
+        if(editMode == Menu::Load){
+            
         }
 
         DUMP(menuSelected);
@@ -139,12 +148,23 @@ void updateDisplay()
     tft.setCursor(tft.getCursorX() - getCharWidth(), tft.getCursorY());
     tft.write(0xEA);
 
+    // load
+    sprintf(buffer, "100 ");
+    tft.setTextColor(0x07FE, ST7735_BLACK);
+    tft.setCursor(getAlignedX(buffer, Alignment::Right), tft.getCursorY());
+    tft.print(buffer);
+    tft.setCursor(tft.getCursorX() - getCharWidth(), tft.getCursorY());
+    tft.write(0xEA);
+
+    tft.println();
+    tft.setCursor(0, tft.getCursorY() + LINE_MARGIN_PX);
+
     // timer
     uint16_t minutes = floor(secondsSpent / 60);
     uint16_t seconds = secondsSpent % 60;
     sprintf(buffer, "%2d:%02d", minutes, seconds);
     tft.setTextColor(0x07FE, ST7735_BLACK);
-    tft.setCursor(getAlignedX(buffer, Alignment::Right), tft.getCursorY() + LINE_MARGIN_PX);
+    tft.setCursor(getAlignedX(buffer, Alignment::Left), tft.getCursorY());
     tft.println(buffer);
 }
 
