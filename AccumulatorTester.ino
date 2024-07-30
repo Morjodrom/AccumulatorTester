@@ -12,6 +12,20 @@
 #define SENSORS_POLLING_PERIOD_MS 1000
 #define DISPLAY_FRAME_LENGTH 1000
 
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+
+const int loads[] = {
+    50,
+    500,
+    1000
+};
+
+const uint8_t loadPins[] = {
+    2,
+    3,
+    4
+};
+
 enum Alignment {
     Left, Right, Center
 };
@@ -33,6 +47,11 @@ void setup()
     tft.fillScreen(ST77XX_BLACK);
     tft.setRotation(1);
     tft.setTextSize(TEXT_SIZE);
+
+    for(int i = 0; i < ARRAY_SIZE(loadPins); i++){
+        pinMode(loadPins[i], OUTPUT);
+        digitalWrite(loadPins[i], LOW);
+    }
 }
 
 float voltsNow = 0;
@@ -45,14 +64,8 @@ unsigned int resistanceMilliOhm = 150;
 unsigned long lastMillis = 0;
 int sensorsPollingTimeout = 0;
 int displayUpdateTimeout = 0;
-
-int loads[3] = {
-    50,
-    500,
-    1000
-};
-
-unsigned int currentLoadIndex = 0;
+unsigned int chosenLoadIndex = 0;
+unsigned int activeLoadIndex = chosenLoadIndex;
 
 enum Menu {
     Cancel = 0,
@@ -71,20 +84,11 @@ void loop()
 
     if(encoder.tick()){        
         if(encoder.click()){
-            if(editMode > Menu::Cancel && editMode < Menu::Overflow){
-                editMode = Menu::Cancel;
-                menuSelected = Menu::Cancel;
-            }
-            else if(menuSelected > Menu::Cancel && menuSelected < Menu::Overflow ){
-                editMode = menuSelected;
-            }
-            else if(menuSelected == Menu::Cancel){                
-                menuSelected = Menu::MinVoltage;
-            } 
+            handleEncoderClick();
         }
 
         if(encoder.turn()){            
-            if(menuSelected > Menu::Cancel && menuSelected < Menu::Overflow){
+            if(editMode == Menu::Cancel && menuSelected > Menu::Cancel && menuSelected < Menu::Overflow){
                 int menuSelectedChanged = menuSelected + encoder.dir();
                 menuSelectedChanged = constrain(menuSelectedChanged, Menu::Cancel, Menu::Overflow);
                 menuSelected = static_cast<Menu>(menuSelectedChanged);
@@ -96,8 +100,8 @@ void loop()
 
             if(editMode == Menu::Load){
                 short loadsMaxIndex = sizeof(loads) / sizeof(loads[0]) - 1;
-                currentLoadIndex += encoder.dir();
-                currentLoadIndex = constrain(currentLoadIndex, 0, loadsMaxIndex);
+                chosenLoadIndex += encoder.dir();
+                chosenLoadIndex = constrain(chosenLoadIndex, 0, loadsMaxIndex);
             }
         }
 
@@ -118,6 +122,11 @@ void loop()
         displayUpdateTimeout = DISPLAY_FRAME_LENGTH;
         updateDisplay();
     }
+
+    for(int i = 0; i < ARRAY_SIZE(loadPins); i++){
+        digitalWrite(loadPins[i], LOW);
+    }
+    digitalWrite(loadPins[activeLoadIndex], HIGH);
 }
 
 void updateDisplay()
@@ -172,7 +181,7 @@ void updateDisplay()
     tft.write(0xEA);
 
     // load
-    sprintf(buffer, "%4dm ", loads[currentLoadIndex]);
+    sprintf(buffer, "%4dm ", loads[chosenLoadIndex]);
     if(editMode == Menu::Load){
         tft.setTextColor(ST7735_CYAN, ST7735_RED); 
     } 
@@ -197,6 +206,43 @@ void updateDisplay()
     tft.setTextColor(0x07FE, ST7735_BLACK);
     tft.setCursor(getAlignedX(buffer, Alignment::Left), tft.getCursorY());
     tft.println(buffer);
+}
+
+void handleEncoderClick(){   
+    bool isMenuActivation = menuSelected == Menu::Cancel;
+    if(isMenuActivation){                
+        menuSelected = Menu::MinVoltage;
+        return;
+    } 
+
+    bool isSaveLoad = editMode == Menu::Load;
+    if(isSaveLoad){
+        activeLoadIndex = chosenLoadIndex;
+        exitMenu();
+        return;
+    } 
+    
+    bool isSave = editMode > Menu::Cancel && editMode < Menu::Overflow;
+    if(isSave){
+        exitMenu();
+        return;
+    }
+
+    bool isMenuChoice = menuSelected > Menu::Cancel && menuSelected < Menu::Overflow;
+    if(isMenuChoice){
+        activateMenu();
+        return;
+    }
+}
+
+void exitMenu()
+{
+    editMode = Menu::Cancel;
+    menuSelected = Menu::Cancel;
+}
+
+void activateMenu(){
+    editMode = menuSelected;
 }
 
 uint16_t getCharWidth(){
