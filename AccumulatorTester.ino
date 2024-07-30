@@ -45,14 +45,24 @@ unsigned int resistanceMilliOhm = 150;
 unsigned long lastMillis = 0;
 int sensorsPollingTimeout = 0;
 int displayUpdateTimeout = 0;
-short menuSelected = 0;
-short editMode = 0;
+
+int loads[3] = {
+    50,
+    500,
+    1000
+};
+
+unsigned int currentLoadIndex = 0;
 
 enum Menu {
     Cancel = 0,
     MinVoltage = 1,
-    Load = 2
+    Load = 2,
+    Overflow
 };
+
+Menu menuSelected = Menu::Cancel;
+Menu editMode = Menu::Cancel;
 
 void loop()
 {
@@ -61,23 +71,34 @@ void loop()
 
     if(encoder.tick()){        
         if(encoder.click()){
-            if(menuSelected == Menu::Cancel){                
-                menuSelected = Menu::MinVoltage;
-            } else {
-                editMode = menuSelected;
+            if(editMode > Menu::Cancel && editMode < Menu::Overflow){
+                editMode = Menu::Cancel;
                 menuSelected = Menu::Cancel;
             }
+            else if(menuSelected > Menu::Cancel && menuSelected < Menu::Overflow ){
+                editMode = menuSelected;
+            }
+            else if(menuSelected == Menu::Cancel){                
+                menuSelected = Menu::MinVoltage;
+            } 
         }
 
-        if(menuSelected > Menu::Cancel && encoder.turn()){
-            menuSelected += encoder.dir();
-        }
+        if(encoder.turn()){            
+            if(menuSelected > Menu::Cancel && menuSelected < Menu::Overflow){
+                int menuSelectedChanged = menuSelected + encoder.dir();
+                menuSelectedChanged = constrain(menuSelectedChanged, Menu::Cancel, Menu::Overflow);
+                menuSelected = static_cast<Menu>(menuSelectedChanged);
+            }
 
-        if(editMode == Menu::MinVoltage){
-            targetMinVolts += 0.1 * encoder.dir();
-        }
-        if(editMode == Menu::Load){
-            
+            if(editMode == Menu::MinVoltage){
+                targetMinVolts += 0.1 * encoder.dir();
+            }
+
+            if(editMode == Menu::Load){
+                short loadsMaxIndex = sizeof(loads) / sizeof(loads[0]) - 1;
+                currentLoadIndex += encoder.dir();
+                currentLoadIndex = constrain(currentLoadIndex, 0, loadsMaxIndex);
+            }
         }
 
         DUMP(menuSelected);
@@ -111,10 +132,12 @@ void updateDisplay()
 
     // target volts
     sprintf(buffer, ">%5s", (String(targetMinVolts, 1) + 'v').c_str());
-    if(menuSelected == 1){
-        tft.setTextColor(ST7735_BLACK, ST7735_WHITE);       
-    } else if(editMode == 1){
+
+    if(editMode == Menu::MinVoltage){
         tft.setTextColor(ST7735_CYAN, ST7735_RED); 
+    }
+    else if(menuSelected == Menu::MinVoltage){
+        tft.setTextColor(ST7735_BLACK, ST7735_WHITE);       
     }
     else {
         tft.setTextColor(0x07FE, ST7735_BLACK);
@@ -149,8 +172,16 @@ void updateDisplay()
     tft.write(0xEA);
 
     // load
-    sprintf(buffer, "100 ");
-    tft.setTextColor(0x07FE, ST7735_BLACK);
+    sprintf(buffer, "%4dm ", loads[currentLoadIndex]);
+    if(editMode == Menu::Load){
+        tft.setTextColor(ST7735_CYAN, ST7735_RED); 
+    } 
+    else if(menuSelected == Menu::Load){
+        tft.setTextColor(ST7735_BLACK, ST7735_WHITE);       
+    } 
+    else {
+        tft.setTextColor(0x07FE, ST7735_BLACK);
+    }
     tft.setCursor(getAlignedX(buffer, Alignment::Right), tft.getCursorY());
     tft.print(buffer);
     tft.setCursor(tft.getCursorX() - getCharWidth(), tft.getCursorY());
