@@ -48,7 +48,6 @@ int displayUpdateTimeout = 0;
 short menuSelected = 0;
 short editMode = 0;
 
-char buffer[10];
 void loop()
 {
     unsigned long millisUpdate = millis() - lastMillis;
@@ -93,6 +92,8 @@ void loop()
 
 void updateDisplay()
 {
+    char buffer[10];
+
     // voltage sensor
     sprintf(buffer, "%-6s", (String(voltsNow, 2) + 'v').c_str());
     tft.setTextColor(0x07FE, ST7735_BLACK);
@@ -146,6 +147,7 @@ void updateDisplay()
     tft.setCursor(getAlignedX(buffer, Alignment::Right), tft.getCursorY() + LINE_MARGIN_PX);
     tft.println(buffer);
 }
+
 uint16_t getCharWidth(){
     int16_t x = 0, y = 0;
     uint16_t w, h;
@@ -158,7 +160,7 @@ uint16_t getCharWidth(){
 uint16_t getAlignedX(char * string, Alignment alignment = Alignment::Left){
     int16_t boundsX, boundsY;
     uint16_t boundsW, boundsH;
-    tft.getTextBounds(buffer, 0, 0, &boundsX, &boundsY, &boundsW, &boundsH);
+    tft.getTextBounds(string, 0, 0, &boundsX, &boundsY, &boundsW, &boundsH);
 
 
     switch (alignment)
